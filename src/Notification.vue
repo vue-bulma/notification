@@ -1,9 +1,19 @@
 <template>
-  <div :class="['notification', 'animated', type ? `is-${type}` : '']" :transition="transition" transition-mode="in-out">
+  <transition
+    :name="transition"
+    mode="in-out"
+    appear
+    :appear-active-class="enterClass"
+    :enter-active-class="enterClass"
+    :leave-active-class="leaveClass"
+    @after-leave="afterLeave"
+  >
+  <div :class="['notification', 'animated', type ? `is-${type}` : '']" v-if="show">
     <button class="delete touchable" @click="close()"></button>
     <div class="title is-5" v-if="title">{{ title }}</div>
     {{ message }}
   </div>
+</transition>
 </template>
 
 <script>
@@ -17,7 +27,7 @@ export default {
     message: String,
     direction: {
       type: String,
-      default: 'right'
+      default: 'Right'
     },
     duration: {
       type: Number,
@@ -31,7 +41,8 @@ export default {
 
   data () {
     return {
-      $_parent_: null
+      $_parent_: null,
+      show: true
     }
   },
 
@@ -46,36 +57,52 @@ export default {
         const Notifications = Vue.extend()
         $parent = new Notifications({
           el: parent
-        }).$appendTo(document.body)
+        })
+        parent = $parent.$el
+        document.body.appendChild(parent)
       }
       // Hacked.
       this.$_parent_ = parent.__vue__
     }
   },
 
-  compiled () {
+  mounted () {
     if (this.$_parent_) {
-      this.$appendTo(this.$_parent_.$el)
+      this.$_parent_.$el.appendChild(this.$el)
+      this.$parent = this.$_parent_
       delete this.$_parent_
     }
-  },
-
-  ready () {
     if (this.duration > 0) {
       this.timer = setTimeout(() => this.close(), this.duration)
     }
   },
 
+  destroyed () {
+    this.$el.remove()
+  },
+
   computed: {
     transition () {
       return `bounce-${this.direction}`
-    }
+    },
+
+    enterClass () {
+      return `bounceIn${this.direction}`
+    },
+
+    leaveClass () {
+      return `bounceOut${this.direction}`
+    },
   },
 
   methods: {
     close () {
       clearTimeout(this.timer)
-      this.$destroy(true)
+      this.show = false
+    },
+
+    afterLeave () {
+      this.$destroy()
     }
   }
 }
