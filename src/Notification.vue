@@ -52,17 +52,24 @@ export default {
       let parent = document.querySelector(this.container)
       if (!parent) {
         // Lazy creating `div.notifications` container.
-        parent = document.createElement('div')
-        parent.classList.add(this.container.replace('.', ''))
-        const Notifications = Vue.extend()
-        $parent = new Notifications({
-          el: parent
+        const className = this.container.replace('.', '')
+        const Notifications = Vue.extend({
+          name: 'Notifications',
+          render (h) {
+            return h('div', {
+              'class': {
+                [`${className}`]: true
+              }
+            })
+          }
         })
-        parent = $parent.$el
-        document.body.appendChild(parent)
+        $parent = new Notifications().$mount()
+        document.body.appendChild($parent.$el)
+      } else {
+        $parent = parent.__vue__
       }
       // Hacked.
-      this.$_parent_ = parent.__vue__
+      this.$_parent_ = $parent
     }
   },
 
