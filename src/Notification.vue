@@ -9,7 +9,7 @@
     @after-leave="afterLeave"
   >
   <div :class="['notification', 'animated', type ? `is-${type}` : '']" v-if="show">
-    <button class="delete touchable" @click="close()"></button>
+    <button class="delete touchable" @click="closedByUser()"></button>
     <div class="title is-5" v-if="title">{{ title }}</div>
     {{ message }}
   </div>
@@ -103,7 +103,14 @@ export default {
   },
 
   methods: {
+    closedByUser () {
+       this.$emit('closed-by-user')
+       clearTimeout(this.timer)
+       this.show = false
+    },
+
     close () {
+      this.$emit('closed-automatically')
       clearTimeout(this.timer)
       this.show = false
     },
